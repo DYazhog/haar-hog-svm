@@ -28,9 +28,9 @@ public class prob {
     public static void  run(String res)
 
   {
-      String f=re;// req is the paht of the reqested image 
+      String f=res;// res is the paht of the requested image 
         try{   //load image from jframe
-                Mat image = Imgcodecs.imread(req);
+                Mat image = Imgcodecs.imread(res);
                 //utiliser haar pout trouver le face
                      CascadeClassifier faceDetector = new CascadeClassifier("C:\\opencv\\sources\\data\\lbpcascades\\lbpcascade_frontalface.xml");
                      //rec 
