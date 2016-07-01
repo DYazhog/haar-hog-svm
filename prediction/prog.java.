@@ -1,0 +1,112 @@
+import java.awt.Graphics;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import javax.imageio.ImageIO;
+import javax.swing.JOptionPane;
+import matlabcontrol.MatlabConnectionException;
+import matlabcontrol.MatlabInvocationException;
+import matlabcontrol.MatlabProxy;
+import matlabcontrol.MatlabProxyFactory;
+import org.opencv.core.Mat;
+import org.opencv.core.MatOfRect;
+import org.opencv.core.Point;
+import org.opencv.core.Rect;
+import org.opencv.core.Scalar;
+import org.opencv.core.Size;
+import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.imgproc.Imgproc;
+import org.opencv.objdetect.CascadeClassifier;
+
+/**
+ *
+ * @author ANASS
+ */
+public class prob {
+
+    public static void  run(String res)
+
+  {
+      String f=re;// req is the paht of the reqested image 
+        try{   //load image from jframe
+                Mat image = Imgcodecs.imread(req);
+                //utiliser haar pout trouver le face
+                     CascadeClassifier faceDetector = new CascadeClassifier("C:\\opencv\\sources\\data\\lbpcascades\\lbpcascade_frontalface.xml");
+                     //rec 
+                     MatOfRect faceDetections = new MatOfRect();
+                     //detecteur 
+                     faceDetector.detectMultiScale(image, faceDetections);  
+                     //condition  
+                     if (faceDetections.toArray().length==0){
+                         JOptionPane.showMessageDialog(null,"no face","emotion", JOptionPane.WARNING_MESSAGE);}
+                      else if(faceDetections.toArray().length>1){
+                              JOptionPane.showMessageDialog(null,"too many faces.","emotion", JOptionPane.WARNING_MESSAGE);}
+                              else{
+                    Mat face = null;
+    for (Rect rect : faceDetections.toArray()) {
+        Imgproc.rectangle(image, new Point(rect.x, rect.y), new Point(rect.x + rect.width, rect.y + rect.height), new Scalar(10, 50, 50));
+        face = image.submat(rect.y, rect.y + rect.height, rect.x, rect.x + rect.width);
+    }
+     Mat ea = null;
+    Size ze = new Size(550,500);
+     ea=image;
+     Imgproc.resize( face, ea, ze );  
+    //redimenssioner
+Size sz = new Size(128,128);
+Imgproc.resize( face, face, sz );          
+Imgcodecs.imwrite("C:\\temp\\"+A+".png", face);
+tratement();
+                     }
+        }
+catch(Exception e)   {
+    }
+}
+    public   static void tratement() throws MatlabConnectionException, MatlabInvocationException, IOException{
+MatlabProxyFactory factory = new MatlabProxyFactory();
+        MatlabProxy proxy = factory.getProxy();
+        proxy.eval("run('C:\\vlfeat-0.9.20-bin.tar\\vlfeat-0.9.20\\toolbox\\vl_setup')");
+        proxy.eval("load('sad.mat','svmStruct');");
+                proxy.eval("sad=svmStruct");
+                proxy.eval("load('happy.mat','svmStruct');");
+                proxy.eval("happy=svmStruct");
+                proxy.eval("load('angry.mat','svmStruct')");
+                proxy.eval("angry=svmStruct");
+                proxy.setVariable("path","C:\\temp\\"+A+".png");
+                proxy.eval("I = imread(path);");
+                proxy.eval("newmap = rgb2gray(I);");
+            proxy.setVariable("cellSize", 4);
+             proxy.eval("hog = vl_hog(single(newmap), cellSize, 'verbose');");
+                proxy.eval("imhog = vl_hog('render', hog, 'verbose') ;");
+                proxy.eval("imwrite(imhog,'man.png');");//image hog
+            proxy.eval("m=hog(:);");
+            proxy.eval("hroup = svmclassify(happy,m');");
+                proxy.eval("aroup = svmclassify(angry,m');");
+                proxy.eval("sroup = svmclassify(sad,m');");
+                
+                double hesult = ((double[]) proxy.getVariable("hroup"))[0]; 
+                 double aesult = ((double[]) proxy.getVariable("aroup"))[0]; 
+                 double sesult = ((double[]) proxy.getVariable("sroup"))[0]; 
+                            try {
+            proxy.eval("exit()");
+            }
+        //Disconnect the proxy from MATLAB
+//proxy.disconnect();
+            catch(Exception e )
+            {
+            }
+                 if(hesult == 1 && sesult==0 &&     aesult == 0) 
+                 {
+                   JOptionPane.showMessageDialog(null,"cette personne est heureux ","emotion", JOptionPane.WARNING_MESSAGE);
+                 }
+                   if(aesult ==1 && sesult==0 && hesult ==0) 
+                 {
+                     JOptionPane.showMessageDialog(null,"cette persone est en colere","emotion", JOptionPane.WARNING_MESSAGE);
+                 }
+                   if(hesult == 0 && aesult ==0 && sesult==1) 
+                 {
+                   JOptionPane.showMessageDialog(null,"cette personne est triste","emotion", JOptionPane.WARNING_MESSAGE);
+                 }
+}
+
+}
